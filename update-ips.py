@@ -63,6 +63,10 @@ if len(sys.argv) > 1:
 
 if not vars().has_key('server'):
     [server, group, remote] = find_server()
+    # pulp-platform hack
+    remote = "https://github.com/pulp-platform"
+    group = "pulp-platform"
+    server = "https://github.com"
 
 print "Using remote git server %s, remote is %s" % (server, remote)
 
@@ -87,6 +91,8 @@ else:
 
 # creates an IPApproX database
 ipdb = ipstools.IPDatabase(ips_dir="./ips", skip_scripts=True)
+# update submodule IPs
+execute("git submodule update --init --recursive")
 # updates the IPs from the git repo
 ipdb.update_ips(remote = remote)
 
