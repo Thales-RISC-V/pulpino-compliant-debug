@@ -77,6 +77,7 @@ vlog -quiet -sv -work ${LIB_PATH} ${RTL_PATH}/components/sp_ram.sv              
 
 
 # files depending on RISCV vs. OR1K
+vlog -quiet -sv -suppress 2583 -work ${LIB_PATH}    +incdir+${IPS_PATH}/riscv-dbg/src ${IPS_PATH}/riscv-dbg/src/dm_pkg.sv || goto error
 vlog -quiet -sv -work ${LIB_PATH} +incdir+${RTL_PATH}/includes ${ASIC_DEFINES} ${CORE_DEFINES} ${RTL_PATH}/core_region.sv        || goto error
 vlog -quiet -sv -work ${LIB_PATH} +incdir+${RTL_PATH}/includes ${ASIC_DEFINES} ${CORE_DEFINES} ${RTL_PATH}/random_stalls.sv      || goto error
 
