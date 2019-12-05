@@ -121,6 +121,15 @@ module peripherals
   logic         s_uart_event;
   logic         i2c_event;
   logic         s_gpio_event;
+  
+//*************************************************************************************
+// DEBUG ADDING
+//************************************************************************************* 
+     logic                  debug_grant, debug_valid, debug_req;
+//*************************************************************************************
+// END DEBUG ADDING
+//*************************************************************************************    
+     
 
   //////////////////////////////////////////////////////////////////
   ///                                                            ///
@@ -518,7 +527,8 @@ module peripherals
 
   apb2per
   #(
-    .PER_ADDR_WIDTH ( 15             ),
+    //.PER_ADDR_WIDTH ( 15             ),
+    .PER_ADDR_WIDTH ( 32             ),
     .APB_ADDR_WIDTH ( APB_ADDR_WIDTH )
   )
   apb2per_debug_i
@@ -535,15 +545,34 @@ module peripherals
     .PREADY               ( s_debug_bus.pready      ),
     .PSLVERR              ( s_debug_bus.pslverr     ),
 
-    .per_master_req_o     ( debug.req               ),
-    .per_master_add_o     ( debug.addr              ),
-    .per_master_we_o      ( debug.we                ),
+    .per_master_req_o     ( debug_req               ),
+    .per_master_add_o     ( debug.add              ),
+    .per_master_we_o      ( debug.wen                ),
     .per_master_wdata_o   ( debug.wdata             ),
-    .per_master_be_o      (                         ),
-    .per_master_gnt_i     ( debug.gnt               ),
+    .per_master_be_o      ( debug.be                ),
+    .per_master_gnt_i     ( debug_grant               ),
 
-    .per_master_r_valid_i ( debug.rvalid            ),
+    .per_master_r_valid_i ( debug_valid            ),
     .per_master_r_opc_i   ( '0                      ),
-    .per_master_r_rdata_i ( debug.rdata             )
+    .per_master_r_rdata_i ( debug.r_rdata             )
   );
+  
+  //*************************************************************************************
+  // DEBUG ADDING
+  //************************************************************************************* 
+
+  
+  assign debug_grant = debug_req;
+       always_ff @(posedge clk_i or negedge rst_n) begin : apb2per_valid
+           if(~rst_n) begin
+               debug_valid <= 0;
+           end else begin
+               debug_valid <= debug_grant;
+           end
+       end
+  assign  debug.req = debug_req;
+  //*************************************************************************************
+  // END DEBUG ADDING
+  //************************************************************************************* 
+  
 endmodule

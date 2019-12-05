@@ -128,7 +128,8 @@ module pulpino_top
     .AXI_ID_WIDTH   ( `AXI_ID_MASTER_WIDTH ),
     .AXI_USER_WIDTH ( `AXI_USER_WIDTH      )
   )
-  masters[2:0]();
+  //masters[2:0]();
+  masters[3:0]();
 
   DEBUG_BUS
   debug();
@@ -193,6 +194,7 @@ module pulpino_top
     .dbg_master     ( masters[1]        ),
     .data_slave     ( slaves[1]         ),
     .instr_slave    ( slaves[0]         ),
+    .dbg_instr_master(masters[3]),
     .debug          ( debug             ),
 
     .tck_i          ( tck_i             ),
@@ -296,7 +298,7 @@ module pulpino_top
   axi_node_intf_wrap
   #(
     .NB_MASTER      ( 3                    ),
-    .NB_SLAVE       ( 3                    ),
+    .NB_SLAVE       ( 4                    ),
     .AXI_ADDR_WIDTH ( `AXI_ADDR_WIDTH      ),
     .AXI_DATA_WIDTH ( `AXI_DATA_WIDTH      ),
     .AXI_ID_WIDTH   ( `AXI_ID_MASTER_WIDTH ),

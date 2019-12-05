@@ -52,8 +52,6 @@ axi/axi_node:
   commit: pulpinov1
 axi/axi_slice:
   commit: pulpinov1
-axi/axi_slice_dc:
-  commit: pulpinov1
 axi/axi_spi_master:
   commit: pulpinov1
 axi/axi_spi_slave:
@@ -62,9 +60,6 @@ axi/core2axi:
   commit: pulpinov1
 
 adv_dbg_if:
-  commit: pulpinov1
-
-riscv:
   commit: pulpinov1
 
 zero-riscy:

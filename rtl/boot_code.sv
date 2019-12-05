@@ -18,7 +18,9 @@ module boot_code
     output logic [31:0] Q
   );
 
-  const logic [0:547] [31:0] mem = {
+
+  assign Q = 32'h0000006f; //jal x0,0
+  /*const logic [0:547] [31:0] mem = {
     32'h00000013,
     32'h00000013,
     32'h00000013,
@@ -579,6 +581,6 @@ module boot_code
         A_Q <= A;
   end
 
-  assign Q = mem[A_Q];
+  assign Q = mem[A_Q];*/
 
 endmodule
