@@ -67,3 +67,6 @@ zero-riscy:
 
 fpu:
   commit: pulpinov1
+
+fpu_div_sqrt_mvp:
+  commit: master

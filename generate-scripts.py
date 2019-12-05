@@ -44,10 +44,39 @@ execute("rm -rf vsim/vcompile/ips/*")
 ipdb = ipstools.IPDatabase(ips_dir="./ips", rtl_dir="./rtl", vsim_dir="./vsim")
 # generate ModelSim/QuestaSim compilation scripts
 ipdb.export_vsim(script_path="vsim/vcompile/ips", target_tech='umc65')
+
 # generate vsim.tcl with ModelSim/QuestaSim "linking" script
 ipdb.generate_vsim_tcl("vsim/tcl_files/config/vsim_ips.tcl")
+# ipstool hacking
+with open("./vsim/tcl_files/config/vsim_ips.tcl", "rb") as f:
+    vsim_file = f.readlines()
+    vsim_tcl = ""
+    for line in vsim_file[:-1]:
+        vsim_tcl += line
+    vsim_tcl +=     "  -L L2_tcdm_hybrid_interco_lib \\\n"
+    vsim_tcl +=     "  -L fpnew_lib \\\n"
+    vsim_tcl +=     "  -L riscv_dbg_lib \\\n"
+    vsim_tcl +=     "  -L riscv_lib \\\n"
+    vsim_tcl +=     "  -L axi_slice_dc_lib \\\n"
+    vsim_tcl +=     "\""
+with open("./vsim/tcl_files/config/vsim_ips.tcl", "wb") as f:
+    f.write(vsim_tcl)
+
 # generate script to compile all IPs for ModelSim/QuestaSim
 ipdb.generate_vcompile_libs_csh("vsim/vcompile/vcompile_ips.csh")
+# ipstool hacking
+with open("./vsim/vcompile/vcompile_ips.csh", "rb") as f:
+    vsim_file = f.readlines()
+    vsim_tcl = ""
+    for line in vsim_file:
+        vsim_tcl += line
+    vsim_tcl +=     "tcsh ${PULP_PATH}/./vsim/vcompile/ips/vcompile_L2_tcdm_hybrid_interco.csh || exit 1\n"
+    vsim_tcl +=     "tcsh ${PULP_PATH}/./vsim/vcompile/ips/vcompile_fpnew.csh || exit 1\n"
+    vsim_tcl +=     "tcsh ${PULP_PATH}/./vsim/vcompile/ips/vcompile_riscv-dbg.csh || exit 1\n"
+    vsim_tcl +=     "tcsh ${PULP_PATH}/./vsim/vcompile/ips/vcompile_riscv.csh || exit 1\n"
+    vsim_tcl +=     "tcsh ${PULP_PATH}/./vsim/vcompile/ips/vcompile_axi_slice_dc.csh || exit 1\n"
+with open("./vsim/vcompile/vcompile_ips.csh", "wb") as f:
+    f.write(vsim_tcl)
 
 # generate Vivado compilation scripts
 ipdb.export_vivado(script_path="fpga/pulpino/tcl/ips_src_files.tcl", alternatives=['riscv'])
