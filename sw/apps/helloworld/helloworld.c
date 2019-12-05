@@ -15,13 +15,6 @@ int main()
 {
 uart_set_cfg(0, 0x28a);
   printf("Hello World!!!!!\n\r");
-   printf ("Characters: %c %c \n\r", 'a', 65);
-   printf ("Decimals: %d %ld\n\r", 1977, 650000L);
-   printf ("Preceding with blanks: %10d \n\r", 1977);
-   printf ("Preceding with zeros: %010d \n\r", 1977);
-   printf ("Some different radices: %d %x %o %#x %#o \n\r", 100, 100, 100, 100, 100);
-   printf ("floats: %4.2f %+.0e %E \n\r", 3.1416, 3.1416, 3.1416);
-   printf ("Width trick: %*d \n\r", 5, 10);
-   printf ("%s \n\r", "A string");
+
   return 0;
 }

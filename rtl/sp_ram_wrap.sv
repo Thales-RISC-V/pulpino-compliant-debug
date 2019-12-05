@@ -28,7 +28,27 @@ module sp_ram_wrap
     input  logic                    bypass_en_i
   );
 
-`ifdef PULP_FPGA_EMUL
+`ifdef SIMU_JTAG
+sp_ram
+  #(
+    .ADDR_WIDTH ( ADDR_WIDTH ),
+    .DATA_WIDTH ( DATA_WIDTH ),
+    .NUM_WORDS  ( RAM_SIZE   )
+  )
+  sp_ram_i
+  (
+    .clk     ( clk       ),
+
+    .en_i    ( en_i      ),
+    .addr_i  ( addr_i    ),
+    .wdata_i ( wdata_i   ),
+    .rdata_o ( rdata_o   ),
+    .we_i    ( we_i      ),
+    .be_i    ( be_i      )
+  );
+
+
+`elsif PULP_FPGA_EMUL
   xilinx_mem_8192x32
   sp_ram_i
   (
@@ -41,23 +61,9 @@ module sp_ram_wrap
     .douta  ( rdata_o                ),
     .wea    ( be_i & {4{we_i}}       )
   );
-//sp_ram
-//  #(
-//    .ADDR_WIDTH ( ADDR_WIDTH ),
-//    .DATA_WIDTH ( DATA_WIDTH ),
-//    .NUM_WORDS  ( RAM_SIZE   )
-//  )
-//  sp_ram_i
-//  (
-//    .clk     ( clk       ),
 
-//    .en_i    ( en_i      ),
-//    .addr_i  ( addr_i    ),
-//    .wdata_i ( wdata_i   ),
-//    .rdata_o ( rdata_o   ),
-//    .we_i    ( we_i      ),
-//    .be_i    ( be_i      )
-//  );
+
+
   // TODO: we should kill synthesis when the ram size is larger than what we
   // have here
 
