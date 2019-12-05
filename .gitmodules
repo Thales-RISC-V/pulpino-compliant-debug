@@ -1,15 +1,15 @@
 [submodule "ips/riscv"]
 	path = ips/riscv
-	url = /home/eyssartk/Drive/pulpino_debug_IPS/riscv
+	url = https://github.com/Thales-RISC-V/riscv
 [submodule "ips/riscv-dbg"]
 	path = ips/riscv-dbg
-	url = /home/eyssartk/Drive/pulpino_debug_IPS/riscv-dbg/
+	url = https://github.com/Thales-RISC-V/riscv-dbg/
 [submodule "ips/axi/axi_slice_dc"]
 	path = ips/axi/axi_slice_dc
-	url = /home/eyssartk/Drive/pulpino_debug_IPS/axi_slice_dc/
+	url = https://github.com/Thales-RISC-V/axi_slice_dc/
 [submodule "ips/L2_tcdm_hybrid_interco"]
 	path = ips/L2_tcdm_hybrid_interco
-	url = /home/eyssartk/Drive/pulpino_debug_IPS/L2_tcdm_hybrid_interco/
+	url = https://github.com/pulp-platform/L2_tcdm_hybrid_interco/
 [submodule "ips/fpnew"]
 	path = ips/fpnew
-	url = /home/eyssartk/Drive/pulpino_debug_IPS/fpnew/
+	url = https://github.com/Thales-RISC-V/fpnew/
