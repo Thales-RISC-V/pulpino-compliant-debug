@@ -73,6 +73,21 @@ macro(add_sim_targets NAME)
   # Run simulation
   ##############################################################################
 
+
+# run in modelsim with GUI
+#  set(STIMULI_JTAG ${CMAKE_CURRENT_BINARY_DIR}/${SUBDIR}/slm_files/spi_stim.txt )
+set(STIMULI_JTAG_ENV "STIMULI_JTAG=${CMAKE_CURRENT_BINARY_DIR}/slm_files/spi_stim.txt" )
+  #set_target_properties(${NAME}.elf PROPERTIES STIMULI_JTAG ${CMAKE_CURRENT_BINARY_DIR}/${SUBDIR}/slm_files/spi_stim.txt)
+  add_custom_target(${NAME}.vsim.jtag
+    COMMAND ${CMAKE_COMMAND} -E remove stdout/*
+    COMMAND ${CMAKE_COMMAND} -E remove FS/*
+   # COMMAND set(STIMULI_JTAG ${CMAKE_CURRENT_BINARY_DIR}/${SUBDIR}/slm_files/spi_stim.txt )
+    COMMAND tcsh -c "${SETENV}  ${STIMULI_JTAG_ENV} ${VSIM}  -64 -do 'source tcl_files/run_jtag.tcl\\;'"
+    WORKING_DIRECTORY ./${SUBDIR}
+    DEPENDS ${NAME}.slm.cmd ${NAME}.stim.txt ${NAME}.links
+    COMMENT "Running ${NAME} in ModelSim"
+    ${USES_TERMINAL})
+
   # run in modelsim with GUI
   add_custom_target(${NAME}.vsim
     COMMAND ${CMAKE_COMMAND} -E remove stdout/*

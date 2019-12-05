@@ -25,6 +25,8 @@ extern int test_check();
 
 int main() {
 
+uart_set_cfg(0, 0x28a);
+
   test_setup();
   perf_start();
 
@@ -44,9 +46,9 @@ int main() {
   perf_stop();
   int check = test_check();
 
-  printf("Correct: %d\n", check);
+  printf("Correct: %d\n\r", check);
   for (int i = 0; i < NUM_ITER; ++i)
-    printf("TS[%d]: %d\n", i, samples[i]);
+    printf("TS[%d]: %d\n\r", i, samples[i]);
 
   perf_print_all();
 

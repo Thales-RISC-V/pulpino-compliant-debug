@@ -159,6 +159,16 @@ spi_stim = open("spi_stim.txt",   'w')
 l2_stim  = open("l2_stim.slm",    'w')
 flash    = open("flash_stim.slm", 'w')
 
+instr_stim = open("instr.c", 'w')
+addr_stim = open("addr.c", 'w')
+
+instr_stim.write("#include \"spi_loader.h\"\n\n")
+instr_stim.write("unsigned int table_inst [SIZE_APP] = {\n")
+
+addr_stim.write("#include \"spi_loader.h\"\n\n")
+addr_stim.write("unsigned int table_add [SIZE_APP] = {\n")
+
+
 ###############################################################################
 # write the stimuli
 ###############################################################################
@@ -180,6 +190,8 @@ for addr in sorted(slm_dict.keys()):
 
         l2_stim.write("@%08X %s\n" % (l2_base, data))
         spi_stim.write("%08X_%s\n" % (addr << 2, data))
+        instr_stim.write("0x%s,\n" %data)
+        addr_stim.write("0x%08X,\n" % (addr << 2) )
 
 
     # tcdm address range
@@ -190,9 +202,16 @@ for addr in sorted(slm_dict.keys()):
         tcdm_size += 1
 
         spi_stim.write("%08X_%s\n" % (addr << 2, data))
+ 	instr_stim.write("0x%s,\n" %data)
+        addr_stim.write("0x%08X,\n" % (addr << 2) )
+
+instr_stim.write("};\n")
+addr_stim.write("};\n")
 ###############################################################################
 # write flash
 ###############################################################################
+
+
 
 # 4KB blocks
 l2_blocks   = (l2_size/1024+1)

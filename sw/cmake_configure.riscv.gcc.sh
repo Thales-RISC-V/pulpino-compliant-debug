@@ -32,7 +32,7 @@ GCC_MARCH="IMXpulpv2"
 #compile arduino lib
 ARDUINO_LIB=1
 
-PULP_GIT_DIRECTORY=../../
+PULP_GIT_DIRECTORY=..
 SIM_DIRECTORY="$PULP_GIT_DIRECTORY/vsim"
 #insert here your post-layout netlist if you are using IMPERIO
 PL_NETLIST=""
