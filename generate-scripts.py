@@ -79,11 +79,11 @@ with open("./vsim/vcompile/vcompile_ips.csh", "wb") as f:
     f.write(vsim_tcl)
 
 # generate Vivado compilation scripts
-ipdb.export_vivado(script_path="fpga/pulpino/tcl/ips_src_files.tcl", alternatives=['riscv'])
+ipdb.export_vivado(script_path="fpga/pulpino_zcu102/tcl/ips_src_files.tcl", alternatives=['riscv'])
 # generate Vivado add_files.tcl
-ipdb.generate_vivado_add_files("fpga/pulpino/tcl/ips_add_files.tcl", alternatives=['riscv'])
+ipdb.generate_vivado_add_files("fpga/pulpino_zcu102/tcl/ips_add_files.tcl", alternatives=['riscv'])
 # generate Vivado inc_dirs.tcl
-ipdb.generate_vivado_inc_dirs("fpga/pulpino/tcl/ips_inc_dirs.tcl", alternatives=['riscv'])
+ipdb.generate_vivado_inc_dirs("fpga/pulpino_zcu102/tcl/ips_inc_dirs.tcl", alternatives=['riscv'])
 # generate verilator compilation scripts
 ipdb.export_verilator(script_path="vsim/verilator/verilator_compile.csh",
     more_opts="${TOP_PATH}/tb/tb_verilator.sv --exe ${TOP_PATH}/tb/tb.cpp ${TOP_PATH}/tb/pulpino.cpp -v ${TOP_PATH}/ips/riscv/include/riscv_defines.sv ${TOP_PATH}/ips/riscv/include/apu_core_package.sv -I${TOP_PATH}/rtl/includes -I${TOP_PATH}/rtl -I${TOP_PATH}/rtl/components")
