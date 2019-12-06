@@ -1,0 +1,297 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\setlength{\parskip}{7pt}
+\setlength{\parindent}{0pt}
+
+\title{GNU Toolchain}
+\date{2019-09-27}
+\author{Armand Bouvier-Neveu -- Thales Research and technology France}
+
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{float}
+
+\lstset{
+	basicstyle=\ttfamily,
+	breaklines=true,
+	columns=fullflexible,
+	tabsize=4,
+	showstringspaces=false,
+	frame=single
+}
+
+\begin{document}
+	\maketitle
+	
+	\section{About}
+	
+	The GNU toolchain is a collection of programming tools. A version for RISC-V is available at \url{https://github.com/riscv/riscv-gnu-toolchain}.
+	
+	The objective of this document is to present the relevant tools for compiling and debugging software, and to offer quick guides and examples about using them.
+	
+	\newpage
+	\section{Platforms}
+	
+	\subsection{Target Triplet}
+	
+	A target triplet is used to identify systems. It allows build system to know if the code will run.
+	
+	Some examples are :
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item x86\_64-linux-gnu
+	\item x86\_64-unknown-freebsd
+	\item i686-pc-linux-gnu
+	\item arm-linux-gnueabihf
+	\item riscv32-unknown-elf
+	\end{itemize}
+	
+	Target triplets have the following structure: \textbf{machine} - \textbf{vendor} - \textbf{operating system}
+	
+	The \textbf{vendor} field may be left out. In that case, it is assumed to be the default (unknown). As such, x86\_64-unknown-freebsd and x86\_64-freebsd are the same.
+	
+	The \textbf{operating system} field can be composed of two words. For example, x86\_64-linux-gnu is actually:
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item machine: x86\_64
+	\item vendor: unknown (left out)
+	\item os: linux-gnu
+	\end{itemize}
+	
+	
+	\subsection{Build, Host, Target}
+	
+	The \textbf{build platform} is the one on which the compilation tools are executed.
+	
+	The \textbf{host platform} is the one on which the code will eventually run.
+	
+	The \textbf{target platform} of a compiler is the one the compiler generates code for.
+	
+	The GNU tools state the platforms they are configured for. The target triplet can be included in the filename of the binaries:
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item aarch64-linux-gnu-gcc
+	\item riscv32-unknown-elf-gdb
+	\item riscv64-unknown-elf-objdump
+	\end{itemize}
+	
+	You may also find it with the -v option:
+	
+	\begin{lstlisting}[language=bash]
+    $ gcc -v
+    [...]
+    Target: x86_64-linux-gnu
+    Configured with: [...] --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
+    [...] 
+    \end{lstlisting}
+    
+    Or the -dumpmachine option:
+    
+    \begin{lstlisting}[language=bash]
+    $ gcc -dumpmachine
+    x86_64-linux-gnu
+    \end{lstlisting}
+    
+    \subsection{RISC-V extensions}
+    
+    The RISC-V instruction set architecture can use extensions. There is the core ISA, standard extensions, and custom extensions.
+    
+    Each extension brings its own instructions. Consequently, the toolchain must be configured with the correct architecture, or you might encounter errors. This is especially true with custom non-standard extensions.
+    
+    You can find information about the target architecture:
+    
+    \begin{lstlisting}[language=bash]
+    $ riscv32-unknown-elf-gcc -v
+    [...]
+    Target: riscv32-unknown-elf
+    Configured with: [...] --with-arch=rv32i [...]
+    [...] 
+    \end{lstlisting}
+    
+    \newpage
+    \section{GCC}
+    
+    GCC is the GNU Compiler Collection. It is a compiler system which supports many languages, including C and C++.
+    
+    \subsection{Basic usage}
+    
+    If \textit{hello.c} is a C source code file, you can compile it into an executable file \textit{hello.exe} with
+    
+    \begin{lstlisting}[language=bash]
+    $ gcc -o hello.exe hello.c
+    \end{lstlisting}
+    
+    \subsection{Options}
+    
+    GCC has \textbf{many} options. A full list is available at \url{https://gcc.gnu.org/onlinedocs/gcc/Option-Summary.html}
+    
+	\subsubsection{Debugging}    
+    
+    Regarding debugging, important options are:
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item \textbf{-g} : produce debugging information that GDB can use
+	\item \textbf{-Og} : optimization level of choice for debugging
+	\end{itemize}
+	
+	
+    \subsubsection{Linker}
+    
+    To produce executable files, GCC includes a linker. You may need to provide your own linker script for some target platforms, such as bare-board targets without an operating system.
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item \textbf{-T script} : use \textit{script} as the linker script
+	\end{itemize}
+    
+    \newpage
+    \section{GDB}
+    
+    GDB is the GNU debugger. It can be used to:
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item load a program to a remote system
+	\item read the target's registers
+	\item step through a program
+	\item debug a program
+	\end{itemize}
+	
+	A full guide of GDB is available at \url{https://sourceware.org/gdb/download/onlinedocs/gdb/index.html}
+	
+	\subsection{Using GDB for a remote RISC-V target}
+	
+	This section presents a way of debugging a program for a bare-metal application running on a RISC-V target. Assuming you have a \textit{hello.c} file and compiled it into a \textit{hello.exe} executable file:
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item launch gdb with the program
+	
+	\begin{lstlisting}[language=bash]
+    $ riscv32-unknown-elf-gdb hello.exe
+    \end{lstlisting}
+    
+    \item Connect to a GDB translator such as OpenOCD
+    
+    \begin{lstlisting}[language=bash]
+    (gdb) target remote [host]:[port]
+    \end{lstlisting}
+    
+    \item load the program
+    
+    \begin{lstlisting}[language=bash]
+    (gdb) load
+    \end{lstlisting}
+	\end{itemize}
+	
+	\subsection{Breakpoints, Continuing, Stepping}
+    
+    Setting a breakpoint:
+    \begin{lstlisting}[language=bash]
+    (gdb) b location
+    \end{lstlisting}
+    
+    \textit{location} can be a function name, a line number, or an address of an instruction
+    
+    \begin{lstlisting}[language=bash]
+    (gdb) b main
+    (gdb) b 20
+    (gdb) b *0x12345678
+    \end{lstlisting}
+    
+    Resume program execution, i.e. continuing:
+    \begin{lstlisting}[language=bash]
+    (gdb) c
+    \end{lstlisting}
+    
+    Step through a single source line:
+    \begin{lstlisting}[language=bash]
+    (gdb) s
+    \end{lstlisting}
+    
+    Step through a single instruction:
+    \begin{lstlisting}[language=bash]
+    (gdb) si
+    \end{lstlisting}
+    
+    \subsection{Layouts}
+    
+    Layouts transform the GDB interface and provide more information about the program.
+    
+    \begin{lstlisting}[language=bash]
+    (gdb) layout layout_name
+    \end{lstlisting}
+    
+    Layout names are:
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item src : displays source
+	\item asm : displays disassembly
+	\item split : displays source and disassembly
+	\item regs : displays registers
+	\end{itemize}
+	
+	\subsection{Other}
+	
+	Show all current breakpoints:
+	\begin{lstlisting}[language=bash]
+    (gdb) info breakpoints
+    \end{lstlisting}
+    
+    Show all registers and their contents:
+    \begin{lstlisting}[language=bash]
+    (gdb) info all-registers
+    \end{lstlisting}
+    
+    Show an expression's value:
+    \begin{lstlisting}[language=bash]
+    (gdb) print expression
+    \end{lstlisting}
+    
+    Jump to a \textit{location}:
+    \begin{lstlisting}[language=bash]
+    (gdb) j location
+    \end{lstlisting}
+    
+    \newpage
+    \section{objdump}
+    
+    objdump is a program that can be used to disassemble an executable file.
+    
+    The program has many options that you can check here: \url{https://sourceware.org/binutils/docs/binutils/objdump.html}
+    
+    \subsection{Example}
+    
+    The following example uses the options \textbf{-D} (disassemble the contents of all sections) and \textbf{-S} (display source code intermixed with disassembly).
+    
+    \begin{lstlisting}[language=bash]
+    $ riscv32-unknown-elf-objdump -D -S hello.exe
+    \end{lstlisting}
+    
+    This command prints the assembly to stdout. You can pipe it to save it in a file.
+    
+    \begin{lstlisting}[language=bash]
+    $ riscv32-unknown-elf-objdump -D -S hello.exe > hello.D
+    \end{lstlisting}
+    
+	
+\end{document}

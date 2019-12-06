@@ -1,0 +1,266 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\setlength{\parskip}{7pt}
+\setlength{\parindent}{0pt}
+
+\title{Using the Diligent JTAG-HS2 Programming Cable with OpenOCD}
+\date{2019-10-11}
+\author{Armand Bouvier-Neveu -- Thales Research and technology France}
+
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\graphicspath{ {./images/} }
+\usepackage{float}
+
+\lstset{
+	basicstyle=\ttfamily,
+	breaklines=true,
+	columns=fullflexible,
+	tabsize=4,
+	showstringspaces=false,
+	frame=single
+}
+
+\begin{document}
+	\maketitle
+	
+	\section{About}
+	
+	The JTAG-HS2 Programming Cable is an USB JTAG probe. It is available here: \url{https://store.digilentinc.com/jtag-hs2-programming-cable/}
+	
+	\begin{figure}[H]
+   	\centering
+   	\includegraphics[width=0.6\textwidth]{hs2.png}
+	\end{figure}
+	
+	The cable is fully compatible with all Xilinx tools, but it can also be used with OpenOCD.
+	
+	\section{Software configuration}
+	
+	\subsection{Libusb}
+	
+	You need libusb to use the cable.
+	
+	On Ubuntu, you can use apt:
+	
+	\begin{lstlisting}[language=bash]
+    $ sudo apt install libusb-1.0-0-dev
+    \end{lstlisting}
+    
+    You can also build it yourself using the sources available on \url{https://libusb.info}
+    
+    \subsection{Libftdi}
+    
+    The cable contains an FTDI chip, so you need libftdi.
+    
+    Ubuntu:
+    
+    \begin{lstlisting}[language=bash]
+    $ sudo apt install libftdi1-dev
+    \end{lstlisting}
+    
+    Or from sources: \url{https://www.intra2net.com/en/developer/libftdi/download.php}
+    
+    \subsection{OpenOCD Compilation}
+    
+    The OpenOCD interface driver used with the cable is \textit{ftdi}.
+    
+    To enable this interface, use the \textit{-{}-enable-ftdi} option when compiling OpenOCD.
+    
+    \begin{lstlisting}[language=bash]
+    $ ./configure --enable-ftdi <other options>
+    \end{lstlisting}
+    
+    To check if your existing instance of OpenOCD supports the ftdi interface, you can list the supported debug adapter drivers:
+    
+    \begin{lstlisting}[language=bash]
+    $ openocd -c interface_list
+    \end{lstlisting}
+    
+    \subsection{udev rules}
+    
+    It is necessary to add a udev rule to use the cable.
+    
+    OpenOCD provides a file containing the rule we need. Copy it into /etc/udev/rules.d/
+    
+    \begin{lstlisting}[language=bash]
+    $ sudo cp <openocd>/contrib/60-openocd.rules /etc/udev/rules.d
+    \end{lstlisting}
+    
+    The file is also available here: \url{https://github.com/riscv/riscv-openocd/blob/riscv/contrib/60-openocd.rules}
+    
+    The particular entry about the HS2 cable is :
+    
+    \begin{lstlisting}
+    ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014", MODE="660", GROUP="plugdev", TAG+="uaccess"
+    \end{lstlisting}
+    
+    Then either reboot your system or reload the udev configuration with :
+    
+    \begin{lstlisting}[language=bash]
+    $ sudo udevadm control --reload
+    \end{lstlisting}
+    
+    \subsection{Checking}
+    
+    To check if the cable is recognized, run lsusb. There should be a line like this:
+    
+    \begin{lstlisting}[language=bash]
+    $ lsusb
+    [...]
+    Bus 005 Device 003: ID 0403:6014 Future Technology Devices International, Ltd FT232H Single HS USB-UART/FIFO IC
+    [...]
+    \end{lstlisting}
+    
+    For more details about the device, use more options:
+    
+    \begin{lstlisting}[language=bash]
+    $ lsusb -v -d 0403:6014
+    \end{lstlisting}
+    
+    \newpage
+    \section{OpenOCD Config File}
+    
+    Examples of config files using the HS2 cable can be found on the Internet:
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item \url{https://github.com/pulp-platform/pulpissimo/blob/master/fpga/pulpissimo-zedboard/openocd-zedboard-hs2.cfg}
+	\item \url{https://github.com/arduino/OpenOCD/blob/master/tcl/interface/ftdi/digilent-hs2.cfg}
+	\end{itemize}
+	
+	Generally, for the interface part of the config file, you can use:
+	
+	\begin{lstlisting}
+interface ftdi
+ftdi_device_desc "Digilent USB Device"
+ftdi_vid_pid 0x0403 0x6014
+ftdi_serial 210249A85F9B
+ftdi_channel 0						
+ftdi_layout_init 0x00e8 0x60eb
+
+reset_config none
+    \end{lstlisting}
+    
+    Use \textbf{lsusb -v -d 0403:6014} to find the necessary values :
+    
+    \vspace{-\topsep}
+	\begin{itemize}
+	\item \textbf{ftdi\_device\_desc}: this command should use the same value as the \textbf{iProduct} field
+	
+	\item \textbf{ftdi\_vid\_pid}: \textbf{idVendor} and \textbf{idProduct}
+	
+	\item \textbf{ftdi\_serial}: this command is useful if there are more than one adapter connected to the host and can be omitted otherwise. The needed value is in the \textbf{iSerial} field.
+	
+	\item \textbf{ftdi\_channel}: the default (channel 0) is fine
+	
+	\item \textbf{ftdi\_layout\_init}: initial values of the FTDI GPIO data and direction registers. Refer to the adapter schematics to find them. 0x00e8 and 0x60eb work for the HS2 cable
+	\end{itemize}
+	
+	For more information about the OpenOCD commands, see \url{http://www.openocd.org/doc/html/Debug-Adapter-Configuration.html}
+	
+	\newpage
+	\section{Verification}
+	
+	To check if the set up is successful, you can use the following procedure:
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item Plug the cable in an USB port of your workstation
+	\item Do not plug the JTAG end of the cable; leave it floating
+	\item Run openocd with this config file (change the serial number):
+	
+	\begin{lstlisting}[language=bash]
+    $ openocd -f test.cfg
+    \end{lstlisting}
+    
+    \begin{lstlisting}
+# Digilent JTAG-HS2
+
+interface ftdi
+ftdi_device_desc "Digilent USB Device"
+ftdi_vid_pid 0x0403 0x6014
+ftdi_serial 210249A85F9B
+ftdi_channel 0						
+ftdi_layout_init 0x00e8 0x60eb
+
+reset_config none
+
+adapter_khz     1000
+
+
+set _CHIPNAME riscv
+jtag newtap $_CHIPNAME cpu -irlen 5 
+
+set _TARGETNAME $_CHIPNAME.cpu
+target create $_TARGETNAME riscv -chain-position $_TARGETNAME
+
+init
+halt
+echo "Ready for Remote Connections"
+    \end{lstlisting}
+    
+    \item If the set up is succesful, you should see something like this:
+    
+    \begin{lstlisting}[language=bash]
+Open On-Chip Debugger 0.10.0+dev-00630-g30b93b8-dirty (2019-10-02-14:34)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+none separate
+adapter speed: 1000 kHz
+Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+Info : clock speed 1000 kHz
+Error: JTAG scan chain interrogation failed: all zeroes
+Error: Check JTAG interface, timings, target power, etc.
+Error: Trying to use configured scan chain anyway...
+Error: riscv.cpu: IR capture error; saw 0x00 not 0x01
+Warn : Bypassing JTAG setup events due to errors
+Error: dtmcontrol is 0. Check JTAG connectivity/board power.
+Info : Listening on port 3333 for gdb connections
+Error: Target not examined yet
+    \end{lstlisting}
+	
+	\end{itemize}
+	
+	\newpage
+	\section{Hardware configuration}
+	
+	The HS2 cable does not use the TRST signal. 
+	
+	Do not leave the pin floating and tie it to 1 if the target TAP reset is active low, or 0 if it is active high.
+	
+	\section{Vivado Hardware Manager}
+	
+	The Digilent JTAG-HS2 cable is supported by the Xilinx Hardware Server. For some reason, it is impossible to use the cable with OpenOCD while the Hardware Server is active.
+	
+	This makes using Vivado and OpenOCD at the same time a problem.
+	
+	A possible fix is the following protocol:
+	
+	\vspace{-\topsep}
+	\begin{itemize}
+	\item Open the hardware server in Vivado and connect to your FPGA board
+	\item Upload the bitstream and program the device
+	\item \textbf{Close} the hardware server
+	\item Launch OpenOCD
+	\end{itemize}
+	
+	Of course, This closes the hardware server and removes access to Vivado features.
+	
+	To properly fix the issue, you would need to find a way of preventing the Vivado Hardware Server from occupying the USB device of the cable.
+	
+\end{document}

@@ -1,0 +1,257 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+
+\setlength{\parskip}{7pt}
+\setlength{\parindent}{0pt}
+
+\title{Building riscv-openocd}
+\date{2019-09-12}
+\author{Armand Bouvier-Neveu -- Thales Research and technology France}
+
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{amssymb}
+
+\lstset{
+	basicstyle=\ttfamily,
+	breaklines=true,
+	columns=fullflexible,
+	tabsize=4,
+	showstringspaces=false,
+	frame=single
+}
+
+\begin{document}
+	\maketitle
+    
+    \section{About}
+    
+    OpenOCD is a free and open-source software distributed under the GPL-2.0 license. It provides on-chip programming and debugging support with a layered architecture of JTAG interface and TAP support.
+    
+    A fork with RISC-V support has been developped and is available on GitHub at \url{https://github.com/riscv/riscv-openocd}
+    
+    This guide aims at providing help about building OpenOCD for various plateforms. More details, guides and manuals about OpenOCD can be found in the repository's README.md
+    
+    \section{Dependencies}
+    
+    \subsection{Compiler}
+    
+    GCC or Clang is currently required to build OpenOCD. On a Linux workstation, GCC should be available by default or in the distribution's repositories.
+    
+    For other architectures, cross-compiling is possible. Linaro provides pre-built GNU cross-toolchain binary archives at \url{https://releases.linaro.org/components/toolchain/binaries/}
+    
+    The \textit{uname} command can help finding the architecture of a target:
+    
+    \begin{lstlisting}[language=bash]
+    $ uname --m
+    \end{lstlisting}
+    
+    \subsection{Tools}
+    
+    Other tools are also needed:
+    \begin{itemize}
+    	\itemsep0em
+    	\item make
+    	\item libtool
+    	\item pkg-config $\geqslant$ 0.23
+    	\item autoconf $\geqslant$ 2.64
+    	\item automake $\geqslant$ 1.14
+    	\item texinfo
+    \end{itemize}
+    
+    On Ubuntu, ensure that everything is installed with:
+    \begin{lstlisting}[language=bash]
+    $ sudo apt install make libtool pkg-config autoconf automake texinfo
+    \end{lstlisting}
+    
+    \subsection{Libraries}
+    
+    Depending on the compilation options, some libraries might be needed.
+    
+    \subsubsection{libusb}
+    
+    If the target is the workstation (i.e. not cross-compiling), it is likely that libusb is already installed or included in the distribution's repositories. For Ubuntu:
+    \begin{lstlisting}[language=bash]
+    $ sudo apt install libusb-1.0-0-dev
+    \end{lstlisting}
+    
+    To cross-compile, or to use the latest version from source:
+    \begin{itemize}
+    	\itemsep0em
+    	\item Obtain the source. The latest tarball is available on \url{https://libusb.info}
+    	\item Extract the source
+    	
+    \begin{lstlisting}[language=bash]
+    $ tar -zxvf libusb-X.X.XX.tar.bz2
+    \end{lstlisting}
+    
+    	\item Make a build directory somewhere, inside the libusb root directory for example
+    	
+    \begin{lstlisting}[language=bash]
+    $ cd libusb-X.X.XX
+    $ mkdir build
+    \end{lstlisting}
+    
+    	\item If cross-compiling, set the compiler. Ensure that the given compiler is in the \$PATH
+    	
+    \begin{lstlisting}[language=bash]
+    $ export CC=arm-linux-gnueabihf-gcc
+    \end{lstlisting}
+    
+    	\item Use the \textit{configure} script. You can see all the options with:
+    	
+    \begin{lstlisting}[language=bash]
+    $ ./configure --help
+    \end{lstlisting}
+    
+    	\item For example, these options set the install directory, set the host for cross-compiling and disable udev:
+    
+    \begin{lstlisting}[language=bash]
+    $ ./configure --prefix=<build dir> --exec-prefix=<build dir> --host=arm-linux-gnueabihf --disable-udev
+    \end{lstlisting}
+    
+    \item Compile and install files
+    
+    \begin{lstlisting}[language=bash]
+    $ make
+    $ make install
+    \end{lstlisting}
+    
+    \item The produced library files are in the \textit{build} directory. They need to be added to the compiler to be used. 
+    
+    \end{itemize}
+    
+    \subsubsection{libftdi}
+    
+    If the target is the workstation (i.e. not cross-compiling), it is likely that libusb is already installed or included in the distribution's repositories. For Ubuntu:
+    \begin{lstlisting}[language=bash]
+    $ sudo apt install libftdi1-dev
+    \end{lstlisting}
+    
+	To cross-compile or to get the latest version, the source is available at \url{https://www.intra2net.com/en/developer/libftdi/download.php}
+    
+    \begin{itemize}
+    
+	\item Some tools are needed. On Ubuntu:
+	
+	\begin{lstlisting}[language=bash]
+    $ sudo apt install build-essential cmake
+    \end{lstlisting}
+    
+    \item Libusb is also required.
+    
+    \item Download and extract the tarball
+    
+    \item Inside the directory, make a build directory
+    
+    \begin{lstlisting}[language=bash]
+    $ cd libftdiX-X.X
+    $ mkdir build
+    $ cd build
+    \end{lstlisting}
+    
+    \item Create a cmake toolchain file and fill it with the target informations
+    
+    \begin{lstlisting}[language=bash, title=toolchain-arm-linux-gnueabihf.cmake]
+    SET(CMAKE_SYSTEM_NAME arm-linux-gnueabihf)
+    SET(CMAKE_C_COMPILER arm-linux-gnueabihf-gcc)
+    SET(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+    SET(LIBUSB_LIBRARIES <...>/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/lib/libusb-1.0.so.0)
+    SET(LIBUSB_INCLUDE_DIR <...>/gcc-linaro-7.4.1-2019.02-x86_64_arm-linux-gnueabihf/include/libusb-1.0)
+    \end{lstlisting}
+    
+    \item Make sure the compilers are in the \$PATH and use cmake. The install directory can be controlled with the prefix options.
+    
+    \begin{lstlisting}[language=bash]
+    $ cmake -DCMAKE_TOOLCHAIN_FILE=<cmake toolchain file> -DCMAKE_INSTALL_PREFIX=$(pwd) -DLIBFTDI_LIBRARY_DIRS=$(pwd) ..
+    \end{lstlisting}
+    
+    \item Compile and install the files
+    
+    \begin{lstlisting}[language=bash]
+    $ make
+    $ make install
+    \end{lstlisting}
+    
+    \item The produced library files are in the \textit{build} directory. They needed to be added to the compiler to be used. 
+    
+    \end{itemize}
+    
+    \section{OpenOCD}
+    
+    \begin{itemize}
+    
+    \item Download the sources
+    
+    \begin{lstlisting}[language=bash]
+    $ git clone https://github.com/riscv/riscv-openocd
+    $ cd riscv-openocd
+    \end{lstlisting}
+    
+    \item Prepare a \textit{build} directory
+    
+    \begin{lstlisting}[language=bash]
+    $ mkdir build
+    \end{lstlisting}
+    
+    \item If the aim is to use OpenOCD for PULP applications, a small patch is required. Find src/target/riscv/riscv.h and modify the following definition :
+    
+    \begin{lstlisting}[language=C]
+    -#define RISCV_MAX_HARTS 32
+    +#define RISCV_MAX_HARTS 1024
+    \end{lstlisting}
+    
+    \item If cross-compiling, set the compiler. Ensure that the given compiler is in the \$PATH
+    	
+    \begin{lstlisting}[language=bash]
+    $ export CC=arm-linux-gnueabihf-gcc
+    \end{lstlisting}
+    
+    \item Launch the bbotstrap script
+    	
+    \begin{lstlisting}[language=bash]
+    $ ./bootstrap
+    \end{lstlisting}
+    
+    \item Review the possible configuration options
+    	
+    \begin{lstlisting}[language=bash]
+    $ ./configure --help
+    \end{lstlisting}
+    
+    \item In particular, \textit{--enable-sysfsgpio}, \textit{--enable-ftdi} and \textit{--enable-remote-bitbang} must be added to use the corresponding features.
+    
+    \item The \textit{--host=} option must be provided to cross-compile
+    
+    \item The \textit{--prefix=} and \textit{--exec-prefix=} options control the installation directory
+    
+    \item Use configure with all the chosen options
+    
+    \begin{lstlisting}[language=bash]
+    $ ./configure --enable-sysfsgpio --host=arm-linux-gnueabihf --prefix=<build dir> --exec-prefix=<build dir>
+    \end{lstlisting}
+    
+    \item Some problems may be encountered with an aarch64-linux-gnu host. Please review \url{https://github.com/riscv/riscv-openocd/issues/17}
+    
+    \item Compile and install files
+    
+    \begin{lstlisting}[language=bash]
+    $ make
+    $ make install
+    \end{lstlisting}
+    
+    \end{itemize}
+    
+    A single \textit{openocd} binary should be available in \textit{build}
+    
+\end{document}
