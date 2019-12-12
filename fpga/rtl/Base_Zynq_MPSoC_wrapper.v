@@ -55,7 +55,7 @@ module Base_Zynq_MPSoC_wrapper
         .tdi_i(tdi_i),
         .tdo_o(tdo_o),
         .tms_i(tms_i),
-        .trstn_i(trstn_i),
+        .trstn_i(1'b1),
         .uart_pl_rx(uart_pl_rx),
         .uart_pl_tx(uart_pl_tx),
         .uart_tx(uart_tx),

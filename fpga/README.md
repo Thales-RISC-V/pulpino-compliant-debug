@@ -1,193 +1,141 @@
 # FPGA
 
-This folder contains everything needed to synthesize and run PULPino on a ZedBoard or ZYBO.
-
-To select board for the ZYBO board instead of the ZedBoard, set the environment
-variable `BOARD`. In the tcsh this means
-
-    setenv BOARD "zybo"
-
-or
-
-    setenv BOARD "zedboard"
-
-Note that if `BOARD` is not set, it defaults to zedboard.
-
-
-This environment variable has to be set during compilation of all FPGA related
-components. If you accidentally forget to set the environment variable during
-part of the compilation process, you may end up with a mixed zedboard/zybo
-build which will not work correctly.
-
-The components that are affected by the BOARD variable are:
-* pulpemu
-* u-boot
-* devicetree
-* spiloader
+This folder contains everything needed to synthesize and run PULPino on a ZCU102 board revision 1.1 from xilinx.
 
 
 ## Requirements
 
-This synthesis flow has been tested with `Vivado 2015.1`, there is no guarantee
+This synthesis flow has been tested with `Vivado 2018.2`, there is no guarantee
 that it is going to work with any other version without modifications to the
 scripts.
 
-For convenience reasons it is best to connect the ZedBoard to your local
-network. This way you can easily transfer files from your host computer to the
-Linux running on the ARM cores of the ZYNQ.
 
+The debugging is performed with riscv32-unknown-elf-gdb of gnu RISC-V toolchain at https://github.com/riscv/riscv-gnu-toolchain.
+As a consequence, you need to install it.
+
+In addition, you need to install OpenOCD which is used to debug, In the directory doc/risc-debug-notes/pdfs, 
+the building-openocd.pdf document describes steps to build and install openocd.
+
+The RI5CY processor has specific Xpulp extension. you need to install the RI5CY toochain at https://github.com/riscveval/ri5cy-gnu-toolchain 
+to be enable to compile Xpulp extension of the RI5CY core.
+
+At last, to program and debug pulpino, you will need to use the diligent JTAG-HS2 Programming cable with OpenOCD, 
+way to install this debug adapter is described in the document  doc/risc-debug-notes/pdfs/openocd-digilent-hs2.pdf.
+
+![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/riscv-debug-notes/images/hs2.png)
 
 ## Get Started
 
-0. Check what board you have: we support Xilinx Zedboard. but the boards depend on the vendor!
-   The following build process needs to be aware of what board you have. you can set the
-   enviornment variables XILINX_BOARD and XILINX_PART to control the board and part number.
-   if you don't specify these, the following defaults values are used:
-   XILINX_PART "xc7z020clg484-1"
-   XILINX_BOARD "em.avnet.com:zynq:zed:c"
+0. Type `make` in the fpga directory ( with `Vivado 2018.2`).
+   This builds the FPGA bitstream for the ZCU102.
+
+1. When the bitstream generation is achieved, connect and switch on the ZCU102 board.
+   To program the FPGA, type `make program_FPGA` in the fpga directory.
+
+![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/datasheet/figures/zcu102_connected.jpg)
+
+2. Make sure the digilent JTAG-HS2 debug adapter is properly connected.
+
+![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/datasheet/figures/hs2_debug_adapter.jpg)
+
+3. By following instruction in `sw` directory, compile helloworld application.
+
+4. When helloworld application is compiled, launch OpenOCD by typing `openocd -f openocd_diligent_hs2.cfg`
+   If it is successful,you should see something like this:
+
+    Open On-Chip Debugger 0.10.0+dev-00832-gaec5cca (2019-12-10-14:21)
+    Licensed under GNU GPL v2
+    For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+    Info : auto-selecting first available session transport "jtag". To override use 'transport select <transport>'.
+    Info : clock speed 1000 kHz
+    Info : JTAG tap: riscv.cpu tap/device found: 0x249511c3 (mfg: 0x0e1 (Wintec Industries), part: 0x4951, ver: 0x2)
+    Info : datacount=2 progbufsize=8
+    Info : Examined RISC-V core; found 16 harts
+    Info :  hart 0: XLEN=32, misa=0x40001104
+    Info :  hart 1: currently disabled
+    Info :  hart 2: currently disabled
+    Info :  hart 3: currently disabled
+    Info :  hart 4: currently disabled
+    Info :  hart 5: currently disabled
+    Info :  hart 6: currently disabled
+    Info :  hart 7: currently disabled
+    Info :  hart 8: currently disabled
+    Info :  hart 9: currently disabled
+    Info :  hart 10: currently disabled
+    Info :  hart 11: currently disabled
+    Info :  hart 12: currently disabled
+    Info :  hart 13: currently disabled
+    Info :  hart 14: currently disabled
+    Info :  hart 15: currently disabled
+    Info : Listening on port 3333 for gdb connections
+    Ready for Remote Connections
+    Info : Listening on port 6666 for tcl connections
+    Info : Listening on port 4444 for telnet connections
+
+5. In separte shell, run gdb by typing `riscv32-unknown-elf-gdb pulpino-compliant-debug/build/apps/helloworld/helloworld.elf`.
+   You must use gdb of the riscv-gnu-toolchain, if it is successful,you should see something like this:
+
+    GNU gdb (GDB) 7.12.50.20170505-git
+    Copyright (C) 2016 Free Software Foundation, Inc.
+    License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+    This is free software: you are free to change and redistribute it.
+    There is NO WARRANTY, to the extent permitted by law.  Type "show copying"
+    and "show warranty" for details.
+    This GDB was configured as "--host=x86_64-pc-linux-gnu --target=riscv32-unknown-elf".
+    Type "show configuration" for configuration details.
+    For bug reporting instructions, please see:
+    <http://www.gnu.org/software/gdb/bugs/>.
+    Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+    For help, type "help".
+    Type "apropos word" to search for commands related to "word"...
+    Reading symbols from ../build/apps/helloworld/helloworld.elf...done.
+    (gdb) 
+
+6.  connect to OpenOCD, load the program ans run helloword as follows:
 
 
-1. Make sure you have the Vivado toolchain and the Xilinx SDK toolchain in your
-   PATH before continuing. The Vivado toolchain is required to generate the
-   bitstream, while the SDK contains the ARM compiler that is used for
-   cross-compiling linux and applications.
-
-2. Set the enviroment variable to select which core you want to synthesize.
-   `setenv USE_ZERO_RISCY 1`  and `setenv ZERO_RV32M 1`for zero-riscy.
-   If `USE_ZERO_RISCY` is set, `setenv ZERO_RV32E 1` for zero-riscy with 16 registers and no RVM extensions.
-   If you want to use the riscy core, do not set `USE_ZERO_RISCY` and set
-   `RISCY_RV32F` for riscy with floating point extensions.
-
-3. Type `make all` in the fpga directory (or `vivado-2015.1 make clean all`).
-   This builds the FPGA bitstream for the ZedBoard, downloads and compiles linux
-   and u-boot, prepares the fsbl and devicetree, downloads and compiles buildroot
-   and builds the boot.bin image for booting the ZYNQ.
-
-4. Prepare the SD card and the ZedBoard for booting via SD card.
-   To prepare the card, follow the Xilinx guide [1].
-
-5. Copy the BOOT.BIN, uImage and devicetree.dtb files to the first partition of the SD card.
-   Those files can be found inside the `fpga/sw/sd_image` folder.
-
-6. Extract the content of the rootfs.tar archive and put it on the second
-   partition of the SD card.
-   You are ready now
-
-7. Put the SD card into the ZedBoard and boot the system.
-   You can use minicom or any other terminal emulator tool to communicate with
-   the UART of the ZedBoard.
-
-8. You should now be able to login to the ZYNQ and have a fully working Linux
-   running on it.
-
-9. To be able to login to Linux via ssh, you have to make sure that Linux is
-   able to access the local network. By default it will try to get an IP
-   address via dhcp. You can check with `ifconfig` and friends if your device
-   has gotten an IP address and use it to connect to it via a host.
-
-10. In order to login use the following credentials:
-
-       username: root
-
-       password: pulp
+    (gdb)target remote localhost:3333
+    Remote debugging using localhost:3333
+    warning: Target-supplied registers are not supported by the current architecture
+    0x00008000 in ?? ()
+    (gdb) load
+    Loading section .vectors, size 0x8c lma 0x0
+    Loading section .text, size 0x378 lma 0x8c
+    Loading section .text.startup.main, size 0x30 lma 0x404
+    Loading section .text.ISR_I2C, size 0x254 lma 0x434
+    Loading section .text.nothing, size 0x4 lma 0x688
+    Loading section .text.ISR_GPIO, size 0x74 lma 0x68c
+    Loading section .text.ISR_TA_CMP, size 0x68 lma 0x700
+    Loading section .text.ISR_TB_CMP, size 0xe0 lma 0x768
+    Loading section .text.illegal_insn_handler_c, size 0x24 lma 0x848
+    Loading section .text.qprinti.constprop.2, size 0x3c8 lma 0x86c
+    Loading section .text.printf, size 0x7ec lma 0xc34
+    Loading section .text.ecall_insn_handler_c, size 0x4 lma 0x1420
+    Loading section .text.set_pin_function, size 0x48 lma 0x1424
+    Loading section .text.set_gpio_pin_direction, size 0x68 lma 0x146c
+    Loading section .text.set_gpio_pin_value, size 0x68 lma 0x14d4
+    Loading section .text.ISR_UART, size 0x4 lma 0x153c
+    Loading section .text.ISR_SPIM0, size 0x4 lma 0x1540
+    Loading section .text.ISR_SPIM1, size 0x4 lma 0x1544
+    Loading section .text.ISR_TA_OVF, size 0x4 lma 0x1548
+    Loading section .text.ISR_TB_OVF, size 0x4 lma 0x154c
+    Loading section .text.uart_set_cfg, size 0x5c lma 0x1550
+    Loading section .text.uart_sendchar, size 0x20 lma 0x15ac
+    Loading section .text.uart_wait_tx_done, size 0x18 lma 0x15cc
+    Loading section .text.eoc, size 0x64 lma 0x15e4
+    Loading section .text.exit, size 0x10 lma 0x1648
+    Loading section .rodata, size 0x1d8 lma 0x100000
+    Loading section .eh_frame, size 0x264 lma 0x1001d8
+    Loading section .data, size 0x90 lma 0x10043c
+    Start address 0x8c, load size 6948
+    Transfer rate: 55 KB/sec, 248 bytes/write.
+    (gdb) c
+    Continuing.
 
 
-
-The boot.bin and rootfs.tar files can be found under the folder sw/sd_image.
-
-
-## Running applications on PULPino
-
-1. Make sure you have a fully working Linux running on the ZYNQ.
-   Otherwise see section "get started" above.
-
-2. Currently the only method to load a program into the PULPino system is via
-   SPI. Linux uses its SPI master to communicate with PULPino's SPI slave and
-   writes directly into the instruction and data memory of PULPino.
-   The spiload program which can be found under sw/apps/spiload takes care of
-   this.
-
-3. Compile the spiload application for the ZYNQ.
-   Just type `make` inside the sw/apps/spiload folder.
-   eg: `vivado-2015.1 make`
-
-4. Transfer this program to the ZYNQ. We suggest using scp, but any other
-   method works as well of course.
-
-5. Now you need to compile the program you want to run on PULPino.
-   Please take a look at the README in pulpino/sw directory which explains how
-   applications can be compiled using cmake.
-   Use this flow to compile your application. We need the spi_stim.txt file
-   from the applications slm_files subfolder.
-
-6. Transfer the spi_stim.txt file to the ZYNQ.
-
-7. Run the spiload application on the ZYNQ like this
-
-    ./spiload ./spi_stim.txt
-
-   This resets PULPino, transfers the application to the memories of PULPino
-   and starts it.
-
-
-As an alternative, there is a cmake target for running applications on fpga
-directly. Just call
-
-    make applicationName.fpga
-
-You need to be able to ssh into the Linux running on the ZYNQ fpga (e.g. using
-public keys) and you need to setup the environment variable `$FPGA_HOSTNAME`.
-Take a look at the script `./sw/utils/run-on-fpga.sh` to understand how it
-works.
-
-
-## stdout via printf on PULPino
-
-When PULPino is run on the FPGA, it transfers all output via printf via UART to
-the ARM host processor in the ZYNQ. To display it, either use a console program
-like minicom to read directly from the serial port, or specify a timeout when
-using `spiload`. `spiload` will connect to the serial port and display
-everything that PULPino sends via UART until the timeout expires.
-
-## Connected peripherals & communication with PULPino
-
-PULPino includes a set of built-in peripherals like SPI, UART and GPIOs.
-The SPI slave peripheral is connected to the SPI master of the ZYNQ, thus it is
-possible to directly write to any memory address of PULPino from outside.
-
-UART is connected to UART0 of the ZYNQ and is available under /dev/ttyPS0 in
-linux.
-
-
-Some of GPIO pins are connected to LEDs, switches and buttons on the ZedBoard.
-
-Specifically the following is connected:
-
-    PULPino GPIO pin  0: SW 0
-    PULPino GPIO pin  1: SW 1
-    PULPino GPIO pin  2: SW 2
-    PULPino GPIO pin  3: SW 3
-    PULPino GPIO pin  4: SW 4
-    PULPino GPIO pin  5: SW 5
-    PULPino GPIO pin  6: SW 6
-    PULPino GPIO pin  7: SW 7
-
-    PULPino GPIO pin  8: LD 0
-    PULPino GPIO pin  9: LD 1
-    PULPino GPIO pin 10: LD 2
-    PULPino GPIO pin 11: LD 3
-    PULPino GPIO pin 12: LD 4
-    PULPino GPIO pin 13: LD 5
-    PULPino GPIO pin 14: LD 6
-    PULPino GPIO pin 15: LD 7
-
-    PULPino GPIO pin 16: BTNC
-    PULPino GPIO pin 17: BTND
-    PULPino GPIO pin 18: BTNL
-    PULPino GPIO pin 19: BTNR
-    PULPino GPIO pin 20: BTNU
+7. On hyperterminal configured on /dev/ttyUSB2 9600-8-N-1, `Hello World!!!!!` is displayed.
 
 
 
-
-[1] http://www.wiki.xilinx.com/Prepare+Boot+Medium

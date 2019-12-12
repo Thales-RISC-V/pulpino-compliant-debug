@@ -1,5 +1,6 @@
 open_hw
 connect_hw_server
+current_hw_target [get_hw_targets -filter {NAME!~"localhost:3121/xilinx_tcf/Digilent/210249A85F9B"}]
 open_hw_target
 set_property PROGRAM.FILE {pulpino_zcu102/pulpino_zcu102.runs/impl_1/Base_Zynq_MPSoC_wrapper.bit} [get_hw_devices xczu9_0]
 current_hw_device [get_hw_devices xczu9_0]
