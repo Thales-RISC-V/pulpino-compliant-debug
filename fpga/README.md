@@ -40,6 +40,7 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
 4. When helloworld application is compiled, launch OpenOCD by typing `openocd -f openocd_diligent_hs2.cfg`
    If it is successful,you should see something like this:
 
+```
     Open On-Chip Debugger 0.10.0+dev-00832-gaec5cca (2019-12-10-14:21)
     Licensed under GNU GPL v2
     For bug reports, read
@@ -69,6 +70,7 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
     Ready for Remote Connections
     Info : Listening on port 6666 for tcl connections
     Info : Listening on port 4444 for telnet connections
+```
 
 5. In separte shell, run gdb by typing `riscv32-unknown-elf-gdb pulpino-compliant-debug/build/apps/helloworld/helloworld.elf`.
    You must use gdb of the riscv-gnu-toolchain, if it is successful,you should see something like this:
