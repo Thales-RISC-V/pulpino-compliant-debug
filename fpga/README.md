@@ -21,8 +21,7 @@ to be enable to compile Xpulp extension of the RI5CY core.
 
 At last, to program and debug pulpino, you will need to use the diligent JTAG-HS2 Programming cable with OpenOCD, 
 way to install this debug adapter is described in the document  doc/risc-debug-notes/pdfs/openocd-digilent-hs2.pdf.
-
-![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/riscv-debug-notes/images/hs2.png)
+![probe](../doc/riscv-debug-notes/images/hs2.png)
 
 ## Get Started
 
@@ -31,12 +30,10 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
 
 1. When the bitstream generation is achieved, connect and switch on the ZCU102 board.
    To program the FPGA, type `make program_FPGA` in the fpga directory.
-
-![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/datasheet/figures/zcu102_connected.jpg)
+    ![zcu102](../doc/datasheet/figures/zcu102_connected.jpg)
 
 2. Make sure the digilent JTAG-HS2 debug adapter is properly connected.
-
-![alt text](https://github.com/Thales-RISC-V/pulpino-compliant-debug/tree/pulpino-dbg/doc/datasheet/figures/hs2_debug_adapter.jpg)
+    ![hs2](../doc/datasheet/figures/hs2_debug_adapter.jpg)
 
 3. By following instruction in `sw` directory, compile helloworld application.
 
@@ -76,6 +73,7 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
 5. In separte shell, run gdb by typing `riscv32-unknown-elf-gdb pulpino-compliant-debug/build/apps/helloworld/helloworld.elf`.
    You must use gdb of the riscv-gnu-toolchain, if it is successful,you should see something like this:
 
+```
     GNU gdb (GDB) 7.12.50.20170505-git
     Copyright (C) 2016 Free Software Foundation, Inc.
     License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -92,10 +90,11 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
     Type "apropos word" to search for commands related to "word"...
     Reading symbols from ../build/apps/helloworld/helloworld.elf...done.
     (gdb) 
+```
 
 6.  connect to OpenOCD, load the program ans run helloword as follows:
 
-
+```
     (gdb)target remote localhost:3333
     Remote debugging using localhost:3333
     warning: Target-supplied registers are not supported by the current architecture
@@ -133,6 +132,7 @@ way to install this debug adapter is described in the document  doc/risc-debug-n
     Transfer rate: 55 KB/sec, 248 bytes/write.
     (gdb) c
     Continuing.
+```
 
 
 7. On hyperterminal configured on /dev/ttyUSB2 9600-8-N-1, `Hello World!!!!!` is displayed.
