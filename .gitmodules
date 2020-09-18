@@ -1,9 +1,9 @@
 [submodule "ips/riscv"]
 	path = ips/riscv
-	url = https://github.com/Thales-RISC-V/riscv
+	url = https://github.com/ThalesGroup/cv32e40p/
 [submodule "ips/riscv-dbg"]
 	path = ips/riscv-dbg
-	url = https://github.com/Thales-RISC-V/riscv-dbg/
+	url = https://github.com/ThalesGroup/riscv-dbg/
 [submodule "ips/axi/axi_slice_dc"]
 	path = ips/axi/axi_slice_dc
 	url = https://github.com/Thales-RISC-V/axi_slice_dc/
